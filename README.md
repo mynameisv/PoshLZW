@@ -3,7 +3,7 @@ License
 
 DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE 
 
-                    Version 2, December 2004 
+Version 2, December 2004 
                     
 Copyright (C) 2004 Sam Hocevar <sam@hocevar.net> 
 
@@ -13,10 +13,9 @@ copies of this license document, and changing it is allowed as long
 
 as the name is changed. 
 
-           DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE 
+DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE 
            
- TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION 
- 
+TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION 
 
 0. You just DO WHAT THE FUCK YOU WANT TO.
 
@@ -40,29 +39,47 @@ By default, if you wanna have compatility you'll have to use v2.0, as it's the c
 iCodingSize !!?
 ---------------
 LZW work by building a ephemeral dictionnary, feeded then by following bytes. The main idea is to encode bytes not on 8-bits but on iCodingSize-bits (9 to 15).
+
 Why min at 9 ? 'cause less would mean size growth.
+
 Why max at 15 ? Well... why not ;-)
-So for example, 4-bytes can be encoded only on 9 bits (if you choose a
-iCodingSize value of 9 and if it's in the dictionnary).
-This value is also the maximum size of the dictionnary : 2^iCodingSize-1
+
+So for example, 4-bytes can be encoded only on 9 bits (if you choose an iCodingSize value of 9 and if it's in the dictionnary).
+
+This value is also the maximum size of the dictionnary : 2^iCodingSize-1.
+
 It's stored in the output at index 0, encoded on 8-bits (a normal byte).
 
 
 Five functions
 ---------------
 Five Long functions :
+
  - Bits-Shift : a simple bits shifting function that don't fucking exists in Powershell 2 !!?
+
  - Bits-Read : read n-bits from an array of Bytes, at a certain position
+
  - Bits-Write : write n-bits to an array of Bytes, at a certain position
+
  - LZWCompress : Compress
+
  - LZWDecompress : Decompress
 
+
+
 These too long functions have been manually shortened to save space:
+
  - bs (for Bits-Shift), 62 bytes long
+
  - br (for Bits-Read), 225 bytes long
+
  - bw (for Bits-Write), 247 bytes long
+
  - lzwc (for LZWCompress), 395 bytes long
+
  - lzwd (for LZWDecompress), 345 bytes long
+
+
 
 Could certainly be optimized ;-)
 
@@ -70,35 +87,59 @@ Could certainly be optimized ;-)
 Powershell script intended to be executed
 -----------------------------------------
 To use LZW it's simple :
+
 1/ Declare functions (or import-module PoshLZW.ps1)
+
   PS> $m_=[math];
+
   PS> function bs{...
+
   PS> function bw{...
+
   PS> function lzwc{...
 
+
+
 2/ compress your powershell script :
+
   PS> $MyScript = "write-host 'Hello World';";
+
   PS> $lz = lzwc $MyScript 10;
 
+
 3/ encode the compressed script in base64
+
   PS> $lz64 = [convert]::ToBase64String($lz);
 
+
+
 4/ Build the payload with the overhead :
+
   PS> $payload = '$m_=[math];';
+
   PS> $payload+= 'function bs{...' + 'function br{...' + 'function lzwd{...';
+
   PS> $payload+= 'IEX(lzwd ([byte[]]([System.Convert]::FromBase64String("'+$lz64+'"))))';
 
-Then you can execute the payload with #>powershell -nop -noni -ex bypass -c here-the-payload
+
+Then you can execute the payload with #>powershell -nop -noni -ex bypass -c here-the-payload.
+
 But take care about the command line size ;-)
+
 
 
 Good rate ?
 ----------------
 Here you'll find a comparison table of different payloads.
-Text : normal ps1 file/payload, without optimisation
-H : overhead of 701 bytes (LZWDecompress, Bits-Read, Bits-Shift and IEX)
-9-15 : iCodingSize, meaning encoding size in bits and also dictionnary size
+
+Text : normal ps1 file/payload, without optimisation.
+
+H : overhead of 701 bytes (LZWDecompress, Bits-Read, Bits-Shift and IEX).
+
+9-15 : iCodingSize, meaning encoding size in bits and also dictionnary size.
+
 A way to use compression could be to run "powershell -c H+B64(LZW(T,9))"
+
  
 |                      | Launcher | Stager |  Agent  |
 |----------------------|----------|--------|---------|
