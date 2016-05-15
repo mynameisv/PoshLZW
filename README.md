@@ -85,25 +85,20 @@ PS> function lzwc{...
 
 2/ compress your powershell script :
 
-  PS> $MyScript = "write-host 'Hello World';";
-
-  PS> $lz = lzwc $MyScript 10;
-
+```PS> $MyScript = "write-host 'Hello World';";
+PS> $lz = lzwc $MyScript 10;
+```
 
 3/ encode the compressed script in base64
-
-  PS> $lz64 = [convert]::ToBase64String($lz);
-
+```PS> $lz64 = [convert]::ToBase64String($lz);
+```
 
 
 4/ Build the payload with the overhead :
-
-  PS> $payload = '$m_=[math];';
-
-  PS> $payload+= 'function bs{...' + 'function br{...' + 'function lzwd{...';
-
-  PS> $payload+= 'IEX(lzwd ([byte[]]([System.Convert]::FromBase64String("'+$lz64+'"))))';
-
+```PS> $payload = '$m_=[math];';
+PS> $payload+= 'function bs{...' + 'function br{...' + 'function lzwd{...';
+PS> $payload+= 'IEX(lzwd ([byte[]]([System.Convert]::FromBase64String("'+$lz64+'"))))';
+```
 
 Then you can execute the payload with #>powershell -nop -noni -ex bypass -c here-the-payload.
 
@@ -123,7 +118,7 @@ A way to use compression could be to run "powershell -c H+B64(LZW(T,9))"
 |                      | Launcher | Stager |  Agent  |
 |----------------------|----------|--------|---------|
 |       Text as T      |   418    |  4 909 |  44 041 |
-| B64(T)     | 1 116    | 13 092 | 117 444 |
+|           B64(T)     | 1 116    | 13 092 | 117 444 |
 |           LZW(T,9)   |   387    |  3 740 |  27 878 |
 |     H+B64(LZW(T,9)   | 2 051    | 13 877 |  97 516 |
 | B64(H+B64(LZW(T,9))  | 5 472    | 37 008 | 260 044 |
@@ -131,13 +126,13 @@ A way to use compression could be to run "powershell -c H+B64(LZW(T,9))"
 |     H+B64(LZW(T,10)  | 2 112    | 12 127 |  85 885 |
 | B64(H+B64(LZW(T,10)) | 5 632    | 32 340 | 229 028 |
 |           LZW(T,11)  |   469    |  3 145 |  20 474 |
-|     H+B64(LZW(T,11)  | 2 261    |*11 576*|  72 444 |
+|     H+B64(LZW(T,11)  | 2 261    |`11 576`|  72 444 |
 | B64(H+B64(LZW(T,11)) | 6 032    | 30 872 | 193 184 |
 |           LZW(T,12)  |   511    |  3 373 |  18 312 |
 |     H+B64(LZW(T,12)  | 2 237    | 11 600 |  63 583 |
 | B64(H+B64(LZW(T,12)) | 5 968    | 30 936 | 169 556 |
 |           LZW(T,13)  |   554    |  3 654 |  16 589 |
-|     H+B64(LZW(T,13)  | 2 426    | 12 788 | *58 306*|
+|     H+B64(LZW(T,13)  | 2 426    | 12 788 | `58 306`|
 | B64(H+B64(LZW(T,13)) | 6 472    | 34 104 | 155 484 |
 |           LZW(T,14)  |   596    |  3 935 |  17 545 |
 |     H+B64(LZW(T,14)  | 2 481    | 13 243 |  59 852 |
@@ -171,6 +166,7 @@ Stats
 Last word ?
 -----------
 
+````
          ///\\\  ( Have Fun )
         ( ^  ^ ) /
       __(  __  )__
@@ -179,3 +175,4 @@ Last word ?
       (..) _| _ (..)
        |____(___|     Mynameisv_ 2016
 _ __ _ (____)____) _ _________________________________ _'
+````
