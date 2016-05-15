@@ -54,32 +54,18 @@ It's stored in the output at index 0, encoded on 8-bits (a normal byte).
 Five functions
 ---------------
 Five Long functions :
-
- - Bits-Shift : a simple bits shifting function that don't fucking exists in Powershell 2 !!?
-
- - Bits-Read : read n-bits from an array of Bytes, at a certain position
-
- - Bits-Write : write n-bits to an array of Bytes, at a certain position
-
- - LZWCompress : Compress
-
- - LZWDecompress : Decompress
-
-
+* Bits-Shift : a simple bits shifting function that don't fucking exists in Powershell 2 !!?
+* Bits-Read : read n-bits from an array of Bytes, at a certain position
+* Bits-Write : write n-bits to an array of Bytes, at a certain position
+* LZWCompress : Compress
+* LZWDecompress : Decompress
 
 These too long functions have been manually shortened to save space:
-
- - bs (for Bits-Shift), 62 bytes long
-
- - br (for Bits-Read), 225 bytes long
-
- - bw (for Bits-Write), 247 bytes long
-
- - lzwc (for LZWCompress), 395 bytes long
-
- - lzwd (for LZWDecompress), 345 bytes long
-
-
+* bs (for Bits-Shift), 62 bytes long
+* br (for Bits-Read), 225 bytes long
+* bw (for Bits-Write), 247 bytes long
+* lzwc (for LZWCompress), 395 bytes long
+* lzwd (for LZWDecompress), 345 bytes long
 
 Could certainly be optimized ;-)
 
@@ -90,13 +76,10 @@ To use LZW it's simple :
 
 1/ Declare functions (or import-module PoshLZW.ps1)
 
-  PS> $m_=[math];
-
-  PS> function bs{...
-
-  PS> function bw{...
-
-  PS> function lzwc{...
+	PS> $m_=[math];
+	PS> function bs{...
+	PS> function bw{...
+	PS> function lzwc{...
 
 
 
@@ -131,13 +114,9 @@ But take care about the command line size ;-)
 Good rate ?
 ----------------
 Here you'll find a comparison table of different payloads.
-
-Text : normal ps1 file/payload, without optimisation.
-
-H : overhead of 701 bytes (LZWDecompress, Bits-Read, Bits-Shift and IEX).
-
-9-15 : iCodingSize, meaning encoding size in bits and also dictionnary size.
-
+* Text : normal ps1 file/payload, without optimisation.
+* H : overhead of 701 bytes (LZWDecompress, Bits-Read, Bits-Shift and IEX).
+* 9-15 : iCodingSize, meaning encoding size in bits and also dictionnary size.
 A way to use compression could be to run "powershell -c H+B64(LZW(T,9))"
 
  
