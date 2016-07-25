@@ -17,7 +17,7 @@ DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE
            
 TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION 
 
-0. You just DO WHAT THE FUCK YOU WANT TO.
+1. You just DO WHAT THE FUCK YOU WANT TO.
 
 
 
@@ -29,6 +29,29 @@ I'm far away from a real Powershell developper, so be free to propose improvemen
 PoshLZW
 --------
 `PowerShell LZW` is a LZW compression/decompression library for Powershell 2.0
+
+Usage: Powershell -ExecutionPolicy Bypass -File PoshLZW.ps1 [-Compress|Decompress] [-iCodingSize <size>] [-Datas <datas>]
+-Compress       LZW compression
+-Decompress     LZW decompression
+-iCodingSize    Dictionnary size (9 to 15)
+-Datas          Datas to compress (normal string or byte array)
+                      or decompress (base64 encoded byte array)
+-Test           Test the script
+
+Example: 
+ > powershell -ex bypass -f PoshLZW.ps1 -C -i 9 -Da `"Hello dear library`"
+   CSQZTYbDeIDIZTCchAbDSYjlCDyA
+
+ > powershell -ex bypass -f PoshLZW.ps1 -De -Da CSQZTYbDeIDIZTCchAbDSYjlCDyA
+   Hello dear library
+
+ > powershell
+ PS> Import-Module .\PoshLZW.ps1
+ PS> $aBytes = [io.file]::ReadAllBytes("testfile.bin");
+ PS> $aComp = LZWCompress -sContent $aBytes -iCodingSize 9;
+ PS> $sDecomp = LZWDecompress -aCompressed $aComp;
+ PS> $aResult =  [System.Text.Encoding]::UTF8.GetBytes($sDecomp);
+ PS> [io.file]::WriteAllBytes("testfile-result.bin", $aResult);
 
 
 Powershell 2.0 ?
@@ -44,11 +67,9 @@ Why min at 9 ? 'cause less would mean size growth.
 
 Why max at 15 ? Well... why not ;-)
 
-So for example, 4-bytes can be encoded only on 9 bits (if you choose an iCodingSize value of 9 and if it's in the dictionnary).
-
 This value is also the maximum size of the dictionnary : 2^iCodingSize-1.
 
-It's stored in the output at index 0, encoded on 8-bits (a normal byte).
+The value is stored in the output at index 0, encoded on 8-bits (a normal byte).
 
 
 Five functions
@@ -62,52 +83,40 @@ Five Long functions :
 
 These too long functions have been manually shortened to save space:
 * bs (for Bits-Shift), 62 bytes long
-* br (for Bits-Read), 225 bytes long
 * bw (for Bits-Write), 247 bytes long
-* lzwc (for LZWCompress), 395 bytes long
-* lzwd (for LZWDecompress), 345 bytes long
+* lzwc (for LZWCompress), 405 bytes long
+* br (for Bits-Read), 235 bytes long
+* lzwd (for LZWDecompress), 359 bytes long
 
 Could certainly be optimized ;-)
 
 
-Powershell script intended to be executed
+How to use it in your own code
 -----------------------------------------
-To use LZW it's simple :
+Best used in your own code, with the short version. Copy/paste PoshLZW_short.ps1 content in your own code:
+* bs, bw, lzwc functions for compression
+* bs, br, lzwd functions for decompression
+Don't forget the shortcut '$m_=[math];' ;-)
 
-1/ Declare functions (or import-module PoshLZW.ps1)
+Here is an exemple of a PowerShell payload that can be used with PowerShell Empire:
 
+A PowerShell payload, that only decompress, will look like :
 ```
-$ PS> $m_=[math];
-$ PS > function bs{...
-$ PS > function bw{...
-$ PS > function lzwc{...
-```
-
-
-2/ compress your powershell script :
-
-```
-$ PS> $MyScript = "write-host 'Hello World';";
-$ PS > $lz = lzwc $MyScript 10;
-```
-
-3/ encode the compressed script in base64
-```
-$ PS > $lz64 = [convert]::ToBase64String($lz);
+C:\> powershell
+PS> Import-Module .\PoshLZW.ps1
+PS> # or Import-Module .\PoshLZW_short.ps1
+PS> $sMyPayload = "write-host 'My P0wny payload Here !!!';";
+PS> $aCompressed = LZWCompress -sContent $sMyPayload -iCodingSize 9;
+PS> # or $aCompressed = lzwc $sMyPayload 9;
+PS> $sB64Payload = [convert]::ToBase64String($aCompressed);
+PS> $sB64Payload;
+CTucjSdDKLTQbzmdBAJyaeRAUBgdzdDTgYTybDeYTIICQZTkZRAIZCJx2A==
+The payload will then be :
+$m_=[math];function bs{...}function br{...}function lzwd{...}IEX(lzwd ([byte[]]([System.Convert]::FromBase64String("CTucjSdDKLTQbzmdBAJyaeRAUBgdzdDTgYTybDeYTIICQZTkZRAIZCJx2A=="))))
 ```
 
-
-4/ Build the payload with the overhead :
-```
-$ PS> $payload = '$m_=[math];';
-$ PS > $payload+= 'function bs{...' + 'function br{...' + 'function lzwd{...';
-$ PS > $payload+= 'IEX(lzwd ([byte[]]([System.Convert]::FromBase64String("'+$lz64+'"))))';
-```
-
-Then you can execute the payload with #>powershell -nop -noni -ex bypass -c here-the-payload.
-
-But take care about the command line size ;-)
-
+Then you can also execute the payload in command line : powershell -nop -noni -ex bypass -c here-the-payload.
+But take care about the command line max length ;-)
 
 
 Good rate ?
