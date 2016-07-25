@@ -30,6 +30,7 @@ PoshLZW
 --------
 `PowerShell LZW` is a LZW compression/decompression library for Powershell 2.0
 
+```
 Usage: Powershell -ExecutionPolicy Bypass -File PoshLZW.ps1 [-Compress|Decompress] [-iCodingSize <size>] [-Datas <datas>]
 -Compress       LZW compression
 -Decompress     LZW decompression
@@ -52,7 +53,7 @@ Example:
  PS> $sDecomp = LZWDecompress -aCompressed $aComp;
  PS> $aResult =  [System.Text.Encoding]::UTF8.GetBytes($sDecomp);
  PS> [io.file]::WriteAllBytes("testfile-result.bin", $aResult);
-
+```
 
 Powershell 2.0 ?
 ----------------
@@ -111,7 +112,9 @@ PS> # or $aCompressed = lzwc $sMyPayload 9;
 PS> $sB64Payload = [convert]::ToBase64String($aCompressed);
 PS> $sB64Payload;
 CTucjSdDKLTQbzmdBAJyaeRAUBgdzdDTgYTybDeYTIICQZTkZRAIZCJx2A==
-The payload will then be :
+```
+Then, the payload will be :
+```
 $m_=[math];function bs{...}function br{...}function lzwd{...}IEX(lzwd ([byte[]]([System.Convert]::FromBase64String("CTucjSdDKLTQbzmdBAJyaeRAUBgdzdDTgYTybDeYTIICQZTkZRAIZCJx2A=="))))
 ```
 
