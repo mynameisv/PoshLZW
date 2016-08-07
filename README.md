@@ -25,6 +25,10 @@ Powershell developper ?
 -----------------------
 I'm far away from a real Powershell developper, so be free to propose improvements and code size reduction tricks.
 
+Why Powershell ?
+-----------------------
+Because it's increasingly used for pentestings.
+Note that Powershell is the dirtiest programmation language ever (I've already programmed in TCL, Perl and tried Ocaml ^_^).
 
 PoshLZW
 --------

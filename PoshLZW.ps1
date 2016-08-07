@@ -39,6 +39,8 @@ Set-StrictMode -Version 2
 # Version
 $global:iVersionMinor = 0;
 $global:iVersionMajor = 1;
+$global:sScriptName = "PoshLZW";
+$global:sAuthor = "Mynameisv_"; # that looks to be me :-)
 #
 ##
 ###
@@ -50,7 +52,7 @@ $global:iVersionMajor = 1;
 # Usage
 function Usage{
 	write-host "";
-	write-host "PoshLZW $iVersionMajor.$iVersionMinor / Mynameisv_";
+	write-host $global:sScriptName "$iVersionMajor.$iVersionMinor /" $global:sAuthor;
 	write-host "License: Do what the fuck you want to public license";
 	write-host "This is just a demonstration of the library, it is better used included in your own code as a library, see the short version."
 	write-host "";
@@ -82,45 +84,45 @@ function Usage{
 # Test
 function Test{
 	# powershell -ex bypass -f PoshLZW.ps1 -C -Da "Hello, we are testing PoshLZW !!!"
-	#$Datas = "Hello, we are testing PoshLZW !!!";
-	$Datas = "!!!!aaabbb`ncccCCCCC";
-	$Datas += [char]2;
-	$Datas += [char]3;
-	$Datas += [char]4;
-	$Datas += [char]150;
-	$Datas += [char]160;
-	$Datas += "z";
-	$iCodingSize = 9;
+	$Datas = "Hello, we are testing PoshLZW !!! Dup=are, are,are , so working !!?";
+	#$Datas = "!!!!aaabbb`ncccCCCCC";
 	
-	if ($Datas.length -lt 40){
+	if ($Datas.length -lt 80){
 		$sBytes = $Datas;
 	} else {
-		$iMax = 16;
+		$iMax = 18;
 		$sBytes = $Datas.Substring(0,$iMax)+"..."+$Datas.Substring($Datas.length-$iMax,$iMax);
 	}
-	write-host "Compression of {$sBytes}, length:" $Datas.length;
-
-	$aCompressed = LZWCompress -sContent $Datas -iCodingSize $iCodingSize;
-	$sBytes = "";
-	$iMax = 6;
-	for ($i=0;$i -lt $iMax;$i++){$sBytes+=[string]$aCompressed[$i]+" ";}
-	$sBytes+="...";
-	for ($i=$aCompressed.length-$iMax;$i -lt $aCompressed.length;$i++){$sBytes+= [string]$aCompressed[$i] + " ";}
-	write-host "Compressed     {"$sBytes"}, length:" $aCompressed.length;
+	write-host "Compression of {$sBytes}, length={" $Datas.length "}";
+	write-host "";
 	
-	$sFinal = LZWDecompress $aCompressed;
-	if ($sFinal.length -lt 40){
-		$sBytes = $sFinal;
-	} else {
-		$iMax = 16;
-		$sBytes = $sFinal.Substring(0,$iMax)+"..."+$sFinal.Substring($sFinal.length-$iMax,$iMax);
-	}
-	write-host "Decompressed   {$sBytes}, length:" $sFinal.length;
+	for ($j=9;$j -le 15;$j++){
+		$iCodingSize = $j;
+		
+		write-host "Coding/Dic Size={$iCodingSize}";
 	
-	if ($Datas -eq $sFinal){
-		write-host "`n \o/ it works \o/`n";
-	} else {
-		write-host "`n [!] Problem during compression or decompression.`n";
+		$aCompressed = LZWCompress -sContent $Datas -iCodingSize $iCodingSize;
+		$sBytes = "";
+		$iMax = 6;
+		for ($i=0;$i -lt $iMax;$i++){$sBytes+=[string]$aCompressed[$i]+" ";}
+		$sBytes+="...";
+		for ($i=$aCompressed.length-$iMax;$i -lt $aCompressed.length;$i++){$sBytes+= [string]$aCompressed[$i] + " ";}
+		write-host "Compressed     {"$sBytes"}, length={" $aCompressed.length "}";
+		
+		$sFinal = LZWDecompress $aCompressed;
+		if ($sFinal.length -lt 80){
+			$sBytes = $sFinal;
+		} else {
+			$iMax = 18;
+			$sBytes = $sFinal.Substring(0,$iMax)+"..."+$sFinal.Substring($sFinal.length-$iMax,$iMax);
+		}
+		write-host "Decompressed   {$sBytes}, length={" $sFinal.length "}";
+		
+		if ($Datas -eq $sFinal){
+			write-host " -> \o/ it works \o/`n";
+		} else {
+			write-host " [!] Problem during compression or decompression.`n";
+		}
 	}
 }	
 #
@@ -140,11 +142,14 @@ function Bits-Write{
 	param(
 		[int32]$iValue,	# Value to encode and write
 		[int32]$iCodingSize, # Size in bits of the coding (9 to 15 bits)
-		[ref]$iBytesCount, # Written bytes counter, as a reference
 		[ref]$aBytes	# array of encoded/written bits, as a reference
 	)
+	
+	# Magic calculation of the iCodingSize-bits already written
+	$iWritePos = [math]::floor($aBytes.value.count*8/$iCodingSize);
+	
 	# Number of bits to write in the first loop
-	$iBitsToWrite = 8 - (($iBytesCount.value * $iCodingSize - 8)%8);
+	$iBitsToWrite = 8 - (($iWritePos * $iCodingSize - 8)%8);
 	
 	# First shift
 	$iShift = $iCodingSize - $iBitsToWrite;
@@ -152,7 +157,8 @@ function Bits-Write{
 	# Number of bits that have been written
 	$iWrittenBits = 0;
 
-	#write-host "[Debug:Bits-Write] iValue={" $iValue "}, iBitsToWrite={" $iBitsToWrite "}, iShift={" $iShift "}";
+	#write-host "[Debug:Bits-Write] iValue={" $iValue "}, iBitsToWrite={" $iBitsToWrite "}, iShift={" $iShift "}, iWritePos={" $iWritePos "}, aBytes.count={" $aBytes.value.count "}";
+
 	# Loop until we have written $iCodingSize bits
 	while($iWrittenBits -lt $iCodingSize){
 		# Build output  
@@ -185,8 +191,6 @@ function Bits-Write{
 		# New shift, simple calcul
 		$iShift -= 8;
 	}
-	# Increment the written bytes counter
-	$iBytesCount.value = $iBytesCount.value + 1;
 }
 #
 ################################
@@ -195,7 +199,7 @@ function Bits-Read{
 	param(
 			[array]$aBytes, # 
 			[int32]$iCodingSize, # Size in bits of the encoded content
-			[ref]$iBytesCount # Encoded byte read counter
+			[ref]$iBytesCount # Encoded byte read counter,  
 	)
 	# The result / output
 	$iOutput = [int32]0;
@@ -218,7 +222,8 @@ function Bits-Read{
 	# Number of bits that have been read
 	$iReadBits = 0;
 	
-	
+	#write-host "[Debug:Bits-Read] iBitsToRead={" $iBitsToRead "}, iShift={" $iShift "}, iReadPos={" $iReadPos "}, aBytes.count={" $aBytes.count "}";
+
 	# Loop until we have read $iCodingSize bits
 	while ($iReadBits -lt $iCodingSize){
 		# Read bits with a shift to remove unwanted bits
@@ -255,7 +260,6 @@ function LZWCompress{
 		$sContent, # Message to encode, as a string
 		[int]$iCodingSize # Coding size in bits (9 to 15)
 	)
-	$iBytesCount = [int32]0; # Number of Bytes written, to calculate the position of the next Byte to write
 	$aCompressed = @(); # Output result as an array of Bytes (positions in the dictionnary). First byte is the encoding size and has to be extract before decompression -> $bToUse = $aCompressed[1..$aCompressed.length];
 	$aDictionnary=@();	# ephemeral local dictionnary used only during the compression
 	$sWordPrevious = '';
@@ -293,7 +297,8 @@ function LZWCompress{
 			#write-host "[Debug:LZWCompress] sWordCurrent has NOT been found in the dictionnary.";
 			#write-host "[Debug:LZWCompress] Write index of sWordPrevious(" $sWordPrevious ")={" ([array]::IndexOf($aDictionnary,$sWordPrevious)) "}";
 			# Write previous word ($sWordPrevious) to the output (bit per bit way)
-			Bits-Write ([array]::IndexOf($aDictionnary,$sWordPrevious)) $iCodingSize ([ref]$iBytesCount) ([ref]$aCompressed);
+			Bits-Write ([array]::IndexOf($aDictionnary,$sWordPrevious)) $iCodingSize ([ref]$aCompressed);
+			
 			#write-host "[Debug:LZWCompress] Output size={" $aCompressed.length "}";
 			#write-host "[Debug:LZWCompress] Output={" $aCompressed "}";
 			
@@ -312,7 +317,7 @@ function LZWCompress{
 		#write-host "[Debug:LZWCompress] sWordPrevious={" $sWordPrevious "}";
 	}
 	# Store last word and avoid miss
-	Bits-Write ([array]::IndexOf($aDictionnary,$sWordPrevious)) $iCodingSize ([ref]$iBytesCount) ([ref]$aCompressed);
+	Bits-Write ([array]::IndexOf($aDictionnary,$sWordPrevious)) $iCodingSize ([ref]$aCompressed);
 	#write-host "[Debug:LZWCompress] Final, output size={" $aCompressed.length "}";
 	#write-host "[Debug:LZWCompress] Final, output={" $aCompressed "}";
 	return @($iCodingSize)+$aCompressed;
@@ -324,7 +329,7 @@ function LZWDecompress{
 	param(
 		$aCompressed # Compressed array of bytes
 	)
-	$iBytesCount = [int32]0; # Result counter, to count and remember the number of call to Bit-Write
+	$iWritePos = [int32]0; # Result counter, to count and remember the number of call to Bit-Write
 	$aDictionnary=@();	# ephemeral local dictionnary used during the decompression
 	$iRef = '';
 	$sEntry = '';
@@ -337,7 +342,7 @@ function LZWDecompress{
 		$aDictionnary += [string]([char]$i);
 	}
 	
-	$iRef = Bits-Read -aBytes $aCompressed -iCodingSize $iCodingSize -iBytesCount ([ref]$iBytesCount);
+	$iRef = Bits-Read -aBytes $aCompressed -iCodingSize $iCodingSize -iBytesCount ([ref]$iWritePos);
 	$sWord = [string]$aDictionnary[$iRef];
 	#write-host "[Debug:LZWDecompress] Read pos iRef=" $iRef "}, dic(iRef)=sWord={" $sWord "}";
 	#write-host "[Debug:LZWDecompress] Write to output {" $sWord "}";
@@ -345,12 +350,12 @@ function LZWDecompress{
 	#write-host "[Debug:LZWDecompress] Output size={" $sDecompressed.length "}, [" $sDecompressed "]";
 
 	# LZW decompression loop
-	#write-host "[Debug:LZWDecompress] Compressed length={" $aCompressed.length "}, Remaining={" ([math]::floor($iBytesCount*$iCodingSize/8)) "}";
-	while ([math]::floor($iBytesCount*$iCodingSize/8) -lt ($aCompressed.length-1)){
-		#write-host "[Debug:LZWDecompress] Loop " ([math]::floor($iBytesCount*$iCodingSize/8)) "<" ($aCompressed.length-1) " ----------------------";
+	#write-host "[Debug:LZWDecompress] Compressed length={" $aCompressed.length "}, Remaining={" ([math]::floor($iWritePos*$iCodingSize/8)) "}";
+	while ([math]::floor($iWritePos*$iCodingSize/8) -lt ($aCompressed.length-1)){
+		#write-host "[Debug:LZWDecompress] Loop " ([math]::floor($iWritePos*$iCodingSize/8)) "<" ($aCompressed.length-1) " ----------------------";
 		# Read element from compressed data 
 		#write-host "[Debug:LZWDecompress] sWord={" $sWord "}";
-		$iRef = Bits-Read -aBytes $aCompressed -iCodingSize $iCodingSize -iBytesCount ([ref]$iBytesCount);
+		$iRef = Bits-Read -aBytes $aCompressed -iCodingSize $iCodingSize -iBytesCount ([ref]$iWritePos);
 		#write-host "[Debug:LZWDecompress] Read pos iRef={" $iRef "}";
 		
 		# Is reference in dictionnary ?
